@@ -739,6 +739,7 @@ func (c *CenterController) Start() {
 	createDir(c.checkpointPath)
 
 	// 不再需要source节点检测 可以存在多个source情况
+	c.m.Lock()
 
 	// 注册变量
 	for k := range c.taskMap {

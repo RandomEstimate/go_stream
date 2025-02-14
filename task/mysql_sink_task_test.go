@@ -1,10 +1,10 @@
 package task
 
 import (
-	"go_stream/config"
-	"go_stream/controller"
 	"fmt"
 	"github.com/segmentio/kafka-go"
+	"go_stream/config"
+	"go_stream/controller"
 	"reflect"
 	"testing"
 )
@@ -13,7 +13,7 @@ func TestMysqlSinkTask(t *testing.T) {
 
 	config.CheckpointInterval = 60 * 1000
 	config.CheckpointTimeout = 60 * 1000
-	config.CheckpointPath = "C:\\tmp\\checkpoint_kafka_sink\\"
+	config.CheckpointPath = "C:\\tmp\\checkpoint_mysql_sink\\"
 
 	c := controller.NewCenterController()
 
@@ -30,12 +30,14 @@ func TestMysqlSinkTask(t *testing.T) {
 		)
 	*/
 
-	sink := NewMysqlSinkTask("sink", "127.0.0.1", 3306, "root", "751037790qQ!", "test", 100, 20, "insert into test(col1, col2) values ", func(data any) string {
+	sink := NewMysqlSinkTask("sink", "127.0.0.1", 3306, "root", "751037790qQ!", "test", 100, 20, "insert into %s(col1, col2) values ", func(data any) (string, string) {
 		s := data.(string)
-		return fmt.Sprintf("('%s', %s)", s, s)
+		return "test", fmt.Sprintf("('%s', %s)", s, s)
 	})
 	sink.Init(reflect.TypeOf(""), reflect.TypeOf(""))
 	c.RegisterTask("mysql_sink", sink, "kafka_source", "sink")
+
+	c.Connect("kafka_source", "mysql_sink")
 
 	c.Start()
 

@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+/*
+snapshot2 版本
+需要支持对同一个db 不同数据表的支持
+*/
+
 type MysqlSinkTask struct {
 	controller.BaseTask
 
@@ -25,12 +30,12 @@ type MysqlSinkTask struct {
 
 	conn *sql.DB
 
-	sql       string // insert ignore into xxx(id, name, age) values 即可后续会自动拼接数据
-	dataToSql func(data any) string
-	cache     []string
+	sql       string                          // insert ignore into %s (id, name, age) values 即可后续会自动拼接数据
+	dataToSql func(data any) (string, string) // 返回的第一个字段是数据表、第二个字段是数据
+	cache     map[string][]string
 }
 
-func NewMysqlSinkTask(taskName string, host string, port int, user string, passwd string, db string, batchUpdate int, timeUpdate int, sql string, dataToSql func(data any) string) *MysqlSinkTask {
+func NewMysqlSinkTask(taskName string, host string, port int, user string, passwd string, db string, batchUpdate int, timeUpdate int, sql string, dataToSql func(data any) (string, string)) *MysqlSinkTask {
 	return &MysqlSinkTask{
 		TaskName:    taskName,
 		host:        host,
@@ -41,7 +46,7 @@ func NewMysqlSinkTask(taskName string, host string, port int, user string, passw
 		batchUpdate: batchUpdate,
 		timeUpdate:  timeUpdate,
 		sql:         sql,
-		cache:       make([]string, 0, batchUpdate),
+		cache:       make(map[string][]string),
 		dataToSql:   dataToSql,
 	}
 }
@@ -65,26 +70,45 @@ func (m *MysqlSinkTask) Open(controller *controller.StatusController) {
 func (m *MysqlSinkTask) Process(message controller.Message[any], controller *controller.StatusController) {
 
 	if message.IsInner {
-		if len(m.cache) != 0 {
+		if m.checkSend() {
 			// 写入
 			m.writeToMysql()
 		}
 	} else {
-		m.cache = append(m.cache, m.dataToSql(message.Data))
-		if len(m.cache) >= m.batchUpdate {
-			m.writeToMysql()
+		t, d := m.dataToSql(message.Data)
+		if _, ok := m.cache[t]; !ok {
+			m.cache[t] = make([]string, 0)
+		}
 
+		m.cache[t] = append(m.cache[t], d)
+
+		if m.checkSend() {
+			m.writeToMysql()
 		}
 	}
 }
 
-func (m *MysqlSinkTask) writeToMysql() {
-	dataSql := m.sql + strings.Join(m.cache, ",")
-	_, err := m.conn.Exec(dataSql)
-	if err != nil {
-		log.Fatal(err)
+func (m *MysqlSinkTask) checkSend() bool {
+	for k := range m.cache {
+		if len(m.cache[k]) > 0 {
+			return true
+		}
 	}
-	m.cache = m.cache[:0]
+
+	return false
+}
+
+func (m *MysqlSinkTask) writeToMysql() {
+	for k := range m.cache {
+		if len(m.cache[k]) > 0 {
+			dataSql := fmt.Sprintf(m.sql, k) + strings.Join(m.cache[k], ",")
+			_, err := m.conn.Exec(dataSql)
+			if err != nil {
+				log.Fatal(err)
+			}
+			m.cache[k] = m.cache[k][:0]
+		}
+	}
 }
 
 func (m *MysqlSinkTask) SinkRun(ctx context.Context) {
