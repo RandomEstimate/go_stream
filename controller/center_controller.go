@@ -377,6 +377,20 @@ func (c *CenterController) startTask(name string) {
 			"center": "startTask",
 		}).Info(fmt.Sprintf("Task[%s] 触发checkpoint", name))
 
+		if taskObject.GetRegisterStatusName() == nil {
+			logger.Log.WithFields(logrus.Fields{
+				"center": "startTask",
+			}).Info(fmt.Sprintf("Task[%s] 未设置需要ck状态变量", name))
+			return
+		}
+
+		if len(taskObject.GetRegisterStatusName()) == 0 {
+			logger.Log.WithFields(logrus.Fields{
+				"center": "startTask",
+			}).Info(fmt.Sprintf("Task[%s] 无需ck状态变量", name))
+			return
+		}
+
 		c.statusController.Checkpoint(taskObject.GetRegisterStatusName())
 		handleAfterCk(data)
 
