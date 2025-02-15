@@ -124,7 +124,7 @@ func (m *MysqlSinkTask) writeToMysql() {
 	if m.dataToCreateTable != nil {
 		for k := range m.createTableCache {
 			if m.createTableCache[k][1] == "" {
-				_, err := m.conn.Exec(m.createTableCache[k][0])
+				_, err := m.conn.Exec(fmt.Sprintf(m.createTableCache[k][0], k))
 				if err != nil {
 					log.Fatal(err)
 				}
