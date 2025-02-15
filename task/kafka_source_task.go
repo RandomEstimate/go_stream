@@ -38,14 +38,17 @@ func NewKafkaSourceTask(taskName string, mode string, brokers []string, topic st
 func (k *KafkaSourceTask) Open(controller *controller.StatusController) {
 	controller.Register("kafka_source_"+k.TaskName, &k.offset)
 
-	var startOffset int64
-	if k.mode == "earliest" {
-		startOffset = kafka.FirstOffset
-	} else if k.mode == "latest" {
-		startOffset = kafka.LastOffset
-	}
 	// 创建reader config
 	for _, p := range k.partition {
+		var startOffset int64
+		if k.mode == "earliest" {
+			startOffset = kafka.FirstOffset
+		} else if k.mode == "latest" {
+			startOffset = kafka.LastOffset
+		}
+
+		k.offset[p] = startOffset
+
 		k.readerConfig = append(k.readerConfig, kafka.ReaderConfig{
 			Brokers:     k.brokers,
 			Topic:       k.topic,

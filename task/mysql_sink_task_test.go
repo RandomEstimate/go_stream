@@ -2,9 +2,9 @@ package task
 
 import (
 	"fmt"
+	"github.com/RandomEstimate/go_stream/config"
+	"github.com/RandomEstimate/go_stream/controller"
 	"github.com/segmentio/kafka-go"
-	"go_stream/config"
-	"go_stream/controller"
 	"reflect"
 	"testing"
 )
@@ -33,6 +33,15 @@ func TestMysqlSinkTask(t *testing.T) {
 	sink := NewMysqlSinkTask("sink", "127.0.0.1", 3306, "root", "751037790qQ!", "test", 100, 20, "insert into %s(col1, col2) values ", func(data any) (string, string) {
 		s := data.(string)
 		return "test", fmt.Sprintf("('%s', %s)", s, s)
+	}, func(data any) (string, string) {
+		tableSql := `
+		create table if not exists test(
+			col1 varchar(10),
+			col2 int
+		)
+		`
+		return "test", tableSql
+
 	})
 	sink.Init(reflect.TypeOf(""), reflect.TypeOf(""))
 	c.RegisterTask("mysql_sink", sink, "kafka_source", "sink")
