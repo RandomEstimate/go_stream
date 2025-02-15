@@ -1,4 +1,4 @@
-module go_stream
+module github.com/RandomEstimate/go_stream
 
 go 1.18
 

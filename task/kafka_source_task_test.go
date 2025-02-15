@@ -1,13 +1,12 @@
 package task
 
 import (
+	"github.com/RandomEstimate/go_stream/config"
+	"github.com/RandomEstimate/go_stream/controller"
 	"github.com/segmentio/kafka-go"
-	"go_stream/config"
-	"go_stream/controller"
 	"reflect"
 	"testing"
 )
-
 
 func TestKafkaSourceTask(t *testing.T) {
 	config.CheckpointInterval = 5 * 1000

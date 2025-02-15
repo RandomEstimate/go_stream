@@ -3,8 +3,8 @@ package controller
 import (
 	"encoding/gob"
 	"fmt"
+	"github.com/RandomEstimate/go_stream/logger"
 	"github.com/sirupsen/logrus"
-	"go_stream/logger"
 	"os"
 	"path/filepath"
 	"reflect"

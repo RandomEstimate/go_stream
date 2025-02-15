@@ -2,7 +2,7 @@ package task
 
 import (
 	"fmt"
-	"go_stream/controller"
+	"github.com/RandomEstimate/go_stream/controller"
 )
 
 type PrintTask struct {

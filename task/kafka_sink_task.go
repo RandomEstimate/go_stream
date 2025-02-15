@@ -2,8 +2,8 @@ package task
 
 import (
 	"context"
+	"github.com/RandomEstimate/go_stream/controller"
 	"github.com/segmentio/kafka-go"
-	"go_stream/controller"
 	"log"
 	"time"
 )

@@ -3,10 +3,10 @@ package task
 import (
 	"context"
 	"fmt"
+	"github.com/RandomEstimate/go_stream/controller"
+	"github.com/RandomEstimate/go_stream/logger"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
-	"go_stream/controller"
-	"go_stream/logger"
 	"time"
 )
 
