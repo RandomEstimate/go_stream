@@ -37,9 +37,11 @@ func (k *KafkaSinkTask) Open(controller *controller.StatusController) {
 	controller.Register("kafka_sink_"+k.TaskName, &k.cache)
 
 	k.writer = kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  k.brokers,
-		Topic:    k.topic, // 替换为你的 Kafka 主题
-		Balancer: &kafka.LeastBytes{},
+		Brokers:      k.brokers,
+		Topic:        k.topic,
+		Balancer:     &kafka.LeastBytes{},
+		BatchSize:    500,
+		BatchTimeout: time.Millisecond * 1,
 	})
 
 	k.SetRegisterStatusName([]string{"kafka_sink_" + k.TaskName})

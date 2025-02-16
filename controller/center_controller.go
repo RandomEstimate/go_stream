@@ -128,8 +128,14 @@ func (t *taskInfo) checkDelete() bool {
 	t.m.Lock()
 	defer t.m.Unlock()
 
-	if len(t.receive) != 0 || len(t.send) != 0 {
-		return false
+	if t.taskType == "common" || t.taskType == "sink" {
+		if len(t.receive) != 0 || len(t.send) != 0 {
+			return false
+		}
+	} else if t.taskType == "source" {
+		if len(t.send) != 0 {
+			return false
+		}
 	}
 
 	return true
