@@ -377,6 +377,9 @@ func (c *CenterController) startTask(name string) {
 			"center": "startTask",
 		}).Info(fmt.Sprintf("Task[%s] 触发checkpoint", name))
 
+		// 最后执行将ck指令传递到下游
+		defer handleAfterCk(data)
+
 		if taskObject.GetRegisterStatusName() == nil {
 			logger.Log.WithFields(logrus.Fields{
 				"center": "startTask",
@@ -392,7 +395,6 @@ func (c *CenterController) startTask(name string) {
 		}
 
 		c.statusController.Checkpoint(taskObject.GetRegisterStatusName())
-		handleAfterCk(data)
 
 		logger.Log.WithFields(logrus.Fields{
 			"center": "startTask",
