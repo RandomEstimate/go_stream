@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 )
 
 // isTypeRegistered 判断序列化是否被注册
@@ -76,4 +77,52 @@ func createUniqueSubDir(parentDir string) (string, error) {
 	}
 
 	return subDirPath, nil
+}
+
+// 深度拷贝
+func deepCopy(src reflect.Value) reflect.Value {
+	if src.IsZero() {
+		return reflect.Zero(src.Type())
+	}
+
+	switch src.Kind() {
+	case reflect.Ptr:
+		original := src.Elem()
+		copy := reflect.New(original.Type())
+		copy.Elem().Set(deepCopy(original))
+		return copy
+
+	case reflect.Interface:
+		if src.IsNil() {
+			return src
+		}
+		return deepCopy(src.Elem())
+
+	case reflect.Struct:
+		copy := reflect.New(src.Type()).Elem()
+		for i := 0; i < src.NumField(); i++ {
+			copy.Field(i).Set(deepCopy(src.Field(i)))
+		}
+		return copy
+
+	case reflect.Slice:
+		copy := reflect.MakeSlice(src.Type(), src.Len(), src.Cap())
+		for i := 0; i < src.Len(); i++ {
+			copy.Index(i).Set(deepCopy(src.Index(i)))
+		}
+		return copy
+
+	case reflect.Map:
+		copy := reflect.MakeMap(src.Type())
+		for _, key := range src.MapKeys() {
+			copy.SetMapIndex(deepCopy(key), deepCopy(src.MapIndex(key)))
+		}
+		return copy
+
+	default:
+		// 基本类型直接复制
+		copy := reflect.New(src.Type()).Elem()
+		copy.Set(src)
+		return copy
+	}
 }

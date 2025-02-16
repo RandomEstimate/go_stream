@@ -116,8 +116,13 @@ func (c *StatusController) Checkpoint(key []string) {
 			panic(fmt.Sprintf("checkpoint出现重复key[%s], 可以尝试查看是否超时导致.", k))
 		}
 		if reflectValue := reflect.ValueOf(c.statusMap[k]); reflectValue.Kind() == reflect.Ptr {
+			//newValue := reflect.New(reflectValue.Elem().Type())
+			//newValue.Elem().Set(reflectValue.Elem())
+			
 			newValue := reflect.New(reflectValue.Elem().Type())
-			newValue.Elem().Set(reflectValue.Elem())
+			copied := deepCopy(reflectValue.Elem())
+			newValue.Elem().Set(copied)
+
 			c.ckStatusMap[k] = newValue.Interface()
 		}
 	}
